@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Password</title>
+    <style>
+        body {
+            background: #333333;
+            color: white;
+        }
+
+        #errorid {
+            color: lightcoral;
+        }
+    </style>
+</head>
+<body>
+    <form action="javascript:;" onsubmit="ask(this)">
+        <input type="password" placeholder="Password" name="authkey" required>
+        <input type="submit" value="Submit">
+    </form>
+    <p id='errorid'></p>
+    <script>
+        function ask(form) {
+            document.getElementById('errorid').innerHTML = null
+            console.log(form.authkey.value)
+            const xhr = new XMLHttpRequest()
+            xhr.onload = () => {
+                console.log(xhr.response)
+                if (xhr.status == 302) {
+                    // parse JSON data
+                    window.location(xhr.getResponseHeader('Location'))
+                } else {
+                    document.getElementById('errorid').innerHTML = xhr.response
+                }
+                
+            };
+            xhr.open('GET', '/password/submit?authkey=' + form.authkey.value);
+            xhr.send();
+        }
+        
+    </script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Primary Meta Tags -->
+    <title>Movie Night stream</title>
+    <meta name="title" content="Movie Night stream">
+    <meta name="description" content="MOVIE NIGHTS YES">
+
+    <meta property="image" content="https://fleepy.tv/movienight/resources/wave.gif">
+
+
+    <link rel="icon" type="image/gif" sizes="32x32" href="/movienight/resources/wave-32x32.gif">
+    <link rel="shortcut icon" href="/movienight/resources/wave.gif">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://fleepy.tv/movienight/">
+    <meta property="og:title" content="Movie Night stream">
+    <meta property="og:description" content="MOVIE NIGHTS YES">
+    <meta property="og:image" content="https://fleepy.tv/movienight/resources/wave.gif">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://fleepy.tv/movienight/">
+    <meta property="twitter:title" content="Movie Night stream">
+    <meta property="twitter:description" content="MOVIE NIGHTS YES">
+    <meta property="twitter:image" content="https://fleepy.tv/movienight/resources/wave.gif">
+
+    <title>Movie Night stream</title>
+    <link href="//vjs.zencdn.net/5.8/video-js.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <meta name="theme-color" content="#f55eed">
+    <link rel="stylesheet" href="main.css">
+</head>
+
+<body>
+    <div class="flex">
+        <video-js id="vid1" class="item video-js vjs-default-skin" height="720" width="1280" controls preload="auto">
+            <source src="https://fleepy.tv/movienight/stream/stream.m3u8" type="application/vnd.apple.mpegurl" />
+        </video-js>
+    </div>
+    <script src="https://unpkg.com/video.js/dist/video.js"></script>
+    <script src="https://unpkg.com/browse/@videojs/http-streaming@1.13.3/dist/videojs-http-streaming.js"></script>
+    <script>
+        var player = videojs('vid1');
+        player.play();
+    </script>
+</body>
+
+</html>
