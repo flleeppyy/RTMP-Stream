@@ -6,6 +6,9 @@ const md5 = require('md5')
 const express = require("express");
 const app = express();
 const helmet = require('helmet');
+const rateLimit = require('express-rate-limit')
+
+const passwordapi = require('./middleware/passwordapi.js')
 
 const utils = require('./modules/utils.js');
 const config = require('./config.js');
@@ -17,43 +20,36 @@ const passwordmd5 = md5(config.password)
 app.use(cookieParser())
 app.set('trust proxy', 1);
 //app.use(helmet());
-app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'public/favicon.ico'))) // Just for extra measure
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10,
+    message: {status: false, message: "Too many requests, please try again after 15 minutes"}
+});
+
+app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'public/favicon.ico')))
 app.get('/password', (req, res) => {
-    if(req.cookies['authkey'] != passwordmd5) { 
-        res.cookie('authkey', '')
+    if(req.cookies['authkey'] != passwordmd5) {
+        console.log(`IP: ${req.ip} - Bad cookie - ${req.cookies['authkey']}`);
+        res.clearCookie('authkey')
         res.sendFile(path.join(__dirname, './password/index.html'))
     } else {
         res.redirect('/')
     }
 })
-app.get('/password/submit', (req, res) => {
-    //console.log(`IP: ${req.ip} ${req.query['authkey']}`)
-    let query = req.query['authkey'];
-    if (!query) {
-        console.log(`IP: ${req.ip} No Auth Key${req.query['authkey']}`);
-        res.status(400).send({status: null, message: "No key sent"})
-    } else if(query == config.password){ 
-        console.log('correct');
-        res.cookie('authkey', passwordmd5, {maxAge: 172800000})
-        res.send({status: true, redirect: '/', message: "Success"})
-    } else if (query != config.password) {
-        console.log('badauthkey');
-        res.status(403).send({status: false, message: "Bad key"})
-    }
-    
-})
+app.use('/password/submit', limiter)
+app.get('/password/submit', passwordapi)
 app.use((req, res, next) => {
-    //console.log(req.cookies)
-    
     if(!req.cookies['authkey']) {
         return res.redirect('/password')
     } else if(req.cookies['authkey'] != passwordmd5) {
-        res.cookie('authkey', '')
+        console.log(`IP: ${req.ip} - Bad cookie - ${req.cookies['authkey']}`);
+        res.clearCookie('authkey')
         return res.redirect('/password')
     }
-    
     next()
 })
+
 app.use('/stream', express.static(__dirname + '/public/stream')) // Static route; DO NOT ADD TRAILING SLASH IN EXPRESS.STATIC
 app.use('/', express.static(__dirname + '/public'))
 app.get('/stream/stream.m3u8', (req, res) => res.sendFile(path.join(__dirname, './public/stream/.m3u8'), { hidden: true })) // Just for extra measure
