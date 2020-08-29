@@ -27,10 +27,10 @@ app.get('/password', (req, res) => {
     }
 })
 app.get('/password/submit', (req, res) => {
-    console.log(req.query['authkey'])
+    //console.log(`IP: ${req.ip} ${req.query['authkey']}`)
     let query = req.query['authkey'];
     if (!query) {
-        console.log('noauthkey');
+        console.log(`IP: ${req.ip} No Auth Key${req.query['authkey']}`);
         res.status(400).send({status: null, message: "No key sent"})
     } else if(query == config.password){ 
         console.log('correct');
