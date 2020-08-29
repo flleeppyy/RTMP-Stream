@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-control" content="No-Cache">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
     
     <!-- Primary Meta Tags -->
     <title>Movie Night stream</title>
@@ -12,9 +12,7 @@
     <meta name="description" content="MOVIE NIGHTS YES">
 
     <meta property="image" content="https://fleepy.tv/movienight/resources/wave.gif">
-
-
-    <link rel="icon" type="image/gif" sizes="32x32" href="/movienight/resources/wave-32x32.gif">
+    <link rel="icon" type="image/gif" sizes="32x32" href="./resources/wave-32x32.gif">
 
     
     <!-- Open Graph / Facebook -->
@@ -41,10 +39,17 @@
 
 <body>
     <header>
+        <button onclick="clearandredirect()">Clear Cookies (Debug)</button>
+        <script>
+            function clearandredirect() {
+                document.cookie = 'authkey=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                window.location.reload(true); 
+            }
+        </script>
         <h1 class="item">Movie Night</h1>
         <h3 class="item">Currently watching: Lucky Star</h3>
     </header>
-    <br>  
+    <br>
     <div class="flex">    
         <video-js id="vid1" class="item video-js vjs-default-skin" height="720" width="1280" controls preload="auto">
             <source src="https://fleepy.tv/movienight/stream/stream.m3u8" type="application/vnd.apple.mpegurl" />

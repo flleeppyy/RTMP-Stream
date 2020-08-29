@@ -13,14 +13,14 @@ const cookieParser = require('cookie-parser');
 const { query } = require("express");
 
 const passwordmd5 = md5(config.password)
-console.log(passwordmd5);
 
 app.use(cookieParser())
-//app.set('trust proxy', 1);
+app.set('trust proxy', 1);
 //app.use(helmet());
 app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'public/favicon.ico'))) // Just for extra measure
 app.get('/password', (req, res) => {
     if(req.cookies['authkey'] != passwordmd5) { 
+        res.cookie('authkey', '')
         res.sendFile(path.join(__dirname, './password/index.html'))
     } else {
         res.redirect('/')
@@ -31,14 +31,14 @@ app.get('/password/submit', (req, res) => {
     let query = req.query['authkey'];
     if (!query) {
         console.log('noauthkey');
-        res.status(400).send(req.param.authkey)
+        res.status(400).send({status: null, message: "No key sent"})
     } else if(query == config.password){ 
         console.log('correct');
         res.cookie('authkey', passwordmd5, {maxAge: 172800000})
-        res.redirect('/')
+        res.send({status: true, redirect: '/', message: "Success"})
     } else if (query != config.password) {
         console.log('badauthkey');
-        res.status(403).send('403: Bad authkey, please try again')
+        res.status(403).send({status: false, message: "Bad key"})
     }
     
 })
