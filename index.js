@@ -45,7 +45,7 @@ app.use(cookiecheck)
 
 app.use('/stream', express.static(__dirname + '/public/stream')) // Static route; DO NOT ADD TRAILING SLASH IN EXPRESS.STATIC
 app.use('/', express.static(__dirname + '/public'))
-app.get('/stream/stream.m3u8', (req, res) => res.sendFile(path.join(__dirname, './public/stream/.m3u8'), { hidden: true })) // Just for extra measure
+app.get('/stream/stream.m3u8', (req, res) => res.sendFile(path.join(__dirname, './public/stream/.m3u8'), { dotfiles: 'allow' })) // Just for extra measure
 app.get('/', (req, res) => { // The index page
     try {
         console.info(`IP: ${req.ip} Requested ${req.url}`) // just do some logging
