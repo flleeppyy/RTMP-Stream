@@ -8,7 +8,7 @@ let init = function (req, res, next) {
         console.log(`IP: ${req.ip} - No Auth Key - ${req.query['authkey']}`);
         return res.status(400).send({status: null, message: "No key sent"})
     } else if(query == config.password){ 
-        console.log(`IP: ${req.ip} - Success - ${req.query['authkey']}`);
+        console.log(`IP: ${req.ip} - Success`);
         res.cookie('authkey', passwordmd5, {maxAge: 172800000})
         return res.send({status: true, redirect: '/', message: "Success"})
     } else if (query != config.password) {

@@ -4,5 +4,5 @@ module.exports = {
 	port: 8111,
 
     // Password to lock behind
-	password: 'test', 
+	password: 'test'
 }
