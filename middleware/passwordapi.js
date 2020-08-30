@@ -2,7 +2,7 @@ const md5 = require('md5')
 const config = require('../config.js');
 const passwordmd5 = md5(config.password)
 
-let init = function (req, res, next) {
+module.exports = function (req, res, next) {
     let query = req.query['authkey'];
     if (!query) {
         console.log(`IP: ${req.ip} - No Auth Key - ${req.query['authkey']}`);
@@ -16,6 +16,4 @@ let init = function (req, res, next) {
         return res.status(403).send({status: false, message: "Bad key"})
     }
     next()
-}
-
-module.exports = init;
+};

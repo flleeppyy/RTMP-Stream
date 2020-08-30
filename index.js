@@ -7,6 +7,8 @@ const express = require("express");
 const app = express();
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit')
+const bodyParser = require('body-parser')
+
 
 const passwordapi = require('./middleware/passwordapi')
 const cookiecheck = require('./middleware/cookiecheck')
@@ -18,6 +20,7 @@ const cookieParser = require('cookie-parser');
 const passwordmd5 = md5(config.password)
 
 app.use(cookieParser())
+app.use(bodyParser())
 app.set('trust proxy', 1);
 app.use(helmet({
     contentSecurityPolicy: false,
@@ -38,10 +41,10 @@ app.get('/password', (req, res) => {
     }
 })
 app.post('/password/submit', limiter)
-app.get('/password/submit', passwordapi)
+app.post('/password/submit', passwordapi)
 app.get('/api/currentlywatching', currentlywatching)
 
-app.use(cookiecheck)
+app.use(cookiecheck) // DO NOT MOVE THIS, PLACE EVERYTHING YOU WANT PLACED BEHIND A PASSWORD WALL, AFTER THIS LINE
 
 app.use('/stream', express.static(__dirname + '/public/stream')) // Static route; DO NOT ADD TRAILING SLASH IN EXPRESS.STATIC
 app.use('/', express.static(__dirname + '/public'))

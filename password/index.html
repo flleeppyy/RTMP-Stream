@@ -72,7 +72,6 @@
     <script>
         function ask(form) {
             document.getElementById('errorid').innerHTML = null
-            console.log(form.authkey.value)
             const xhr = new XMLHttpRequest()
             xhr.onload = () => {
                 const response = JSON.parse(xhr.response)
@@ -85,7 +84,7 @@
                         break
                 }
             };
-            xhr.open('POST', '/password/submit?authkey=' + form.authkey.value);
+            xhr.open('POST', './password/submit?authkey=' + form.authkey.value);
             xhr.send();
         }
         
