@@ -37,7 +37,7 @@ app.get('/password', (req, res) => {
         res.redirect('/')
     }
 })
-app.use('/password/submit', limiter)
+app.post('/password/submit', limiter)
 app.get('/password/submit', passwordapi)
 app.get('/api/currentlywatching', currentlywatching)
 

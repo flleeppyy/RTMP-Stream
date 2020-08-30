@@ -85,7 +85,7 @@
                         break
                 }
             };
-            xhr.open('GET', '/password/submit?authkey=' + form.authkey.value);
+            xhr.open('POST', '/password/submit?authkey=' + form.authkey.value);
             xhr.send();
         }
         
