@@ -66,18 +66,13 @@
         var player = videojs('vid1');
         player.play();
 
-        function getcurrentlywatching() {
-            const xhr = new XMLHttpRequest()
+        const xhr = new XMLHttpRequest()
             xhr.onload = () => {
                 const response = JSON.parse(xhr.response)
                 document.getElementById('currentlywatching').innerHTML = `Currently Watching: ${response.currentlywatching}`;
             };
             xhr.open('GET', '/api/currentlywatching');
             xhr.send();
-        }
-        setInterval(() => {
-            getcurrentlywatching()
-        },30000)
     </script>
     
 </body>

@@ -12,12 +12,13 @@ const bodyParser = require('body-parser')
 
 const passwordapi = require('./middleware/passwordapi')
 const cookiecheck = require('./middleware/cookiecheck')
+const currentlywatching = require('./middleware/currentlywatching')
 const utils = require('./modules/utils');
 const config = require('./config');
 const cookieParser = require('cookie-parser');
 
 const passwordmd5 = md5(config.password)
-let currentlywatching;
+
 app.use(cookieParser())
 app.use(bodyParser())
 app.set('trust proxy', 1);
@@ -27,7 +28,7 @@ app.use(helmet({
 
 const limiter = rateLimit(config.ratelimit);
 
-app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'public/favicon.ico')))
+app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'public/resources/wave.gif')))
 app.get('/password', (req, res) => {
     if(req.cookies['authkey'] != passwordmd5) {
         if (req.cookies['authkey'] != undefined) {
@@ -41,16 +42,10 @@ app.get('/password', (req, res) => {
 })
 app.post('/password/submit', limiter)
 app.post('/password/submit', passwordapi)
+app.get('/api/currentlywatching', currentlywatching)
 
 app.use(cookiecheck) // DO NOT MOVE THIS, PLACE EVERYTHING YOU WANT PLACED BEHIND A PASSWORD WALL, AFTER THIS LINE
 
-setInterval(() => {
-    currentlywatching = JSON.parse(fs.readFileSync(path.join(__dirname, "./data.json")))
-}, 30000)
-
-app.get('/api/currentlywatching', (req, res) => {
-    res.send(currentlywatching);
-})
 app.use('/stream', express.static(__dirname + '/public/stream')) // Static route; DO NOT ADD TRAILING SLASH IN EXPRESS.STATIC
 app.use('/', express.static(__dirname + '/public'))
 app.get('/stream/stream.m3u8', (req, res) => res.sendFile(path.join(__dirname, './public/stream/.m3u8'), { dotfiles: 'allow' })) // Just for extra measure
