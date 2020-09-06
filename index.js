@@ -18,8 +18,9 @@ const passwordapi = require('./middleware/passwordapi')
 const adminpasswordapi = require('./middleware/adminpasswordapi')
 const cookiecheck = require('./middleware/cookiecheck')
 const admincookiecheck = require('./middleware/admincookiecheck')
+const checkdisabled = require('./middleware/checkdisabled')
 // const utils = require('./modules/utils');
-const config = JSON.parse(fs.readFileSync('./config.json'))
+let config = JSON.parse(fs.readFileSync('./config.json'))
 const cookieParser = require('cookie-parser');
 
 const passwordmd5 = md5(config['mainpassword'])
@@ -41,18 +42,17 @@ const limiter = rateLimit({
     }
 });
 
-app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'public/favicon.ico')))
-app.get('/password', (req, res) => {
-    if(req.cookies['authkey'] != passwordmd5) {
-        if (req.cookies['authkey'] != undefined) {
-            console.log(`IP: ${req.ip} - Bad cookie - ${req.cookies['authkey']}`);
-        }
-        res.clearCookie('authkey')
-        res.sendFile(path.join(__dirname, './password/index.html'))
+app.get('/disabled', (req, res) => {
+    console.log('uhhh')
+    if(JSON.parse(fs.readFileSync('./config.json'))['sitedisabled']) {
+        console.log(config['sitedisabled'])
+        res.status(503).sendFile(path.join(__dirname, 'password/disabled.html'));
     } else {
         res.redirect('/')
     }
 })
+app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'public/favicon.ico')))
+
 app.get(['/admin', '/api/admin'], (req, res) => {
     if(req.cookies['adminauthkey'] != adminpasswordmd5) {
         if (req.cookies['adminauthkey'] != undefined) {
@@ -64,11 +64,17 @@ app.get(['/admin', '/api/admin'], (req, res) => {
         res.sendFile(path.join(__dirname, './adminpanel/panel.html'));
     }
 })
-app.post('/password/submit', limiter)
-app.post('/password/submit', passwordapi)
+
+
 app.post('/password/submit/admin', limiter)
 app.post('/password/submit/admin', adminpasswordapi)
 app.use('/api/admin', admincookiecheck)
+/*
+    TO DO: create a function that edits the config instead of having to copy the function
+    multiple times
+    function editconfig(key, value)
+
+*/
 app.post('/api/admin/changesitepassword', (req, res) => {
     if(!req.query['password']) {
         return res.status(400).send({status: false, message: "No password provided"})
@@ -102,6 +108,68 @@ app.post('/api/admin/changecurrentlywatching', (req, res) => {
     
     return res.send({status: true, message: `Success!\nSet to "${req.query['currentlywatching']}"`})
 })
+
+app.get('/api/admin/sitedisabled', (req, res) => {
+    
+    // console.log(config['sitedisabled'])
+    if(JSON.parse(fs.readFileSync('./config.json'))['sitedisabled']) {
+        // console.log("should be disabled")
+        res.send({status: true, message: `Site Disabled`, disabled: true})
+    } else {
+        // console.log("should be enabled")
+        res.send({status: true, message: `Site Enabled`, disabled: false})
+    }
+})
+app.post('/api/admin/sitedisabled', (req, res) => {
+    let query;
+    if(!req.query['sitedisabled']) {
+        return res.status(400).send({status: false, message: "No bool provided", missing: "sitedisabled"})
+    } else {
+        if(req.query['sitedisabled'] == "false") {
+            query = false;
+        } else if (req.query['sitedisabled'] == "true") {
+            query = true;
+        }
+        fs.readFile('config.json', (err, data) => {
+            data = JSON.parse(data);
+            data['sitedisabled'] = query;
+            newdata = JSON.stringify(data, null, 2)
+            fs.writeFile('config.json', newdata, (err) => {
+                if (err) throw err;
+            })
+           
+        })
+        
+    }
+    if(query) {
+        config = JSON.parse(fs.readFileSync('./config.json'))
+        console.log(`IP: ${req.ip} - Site Disabled`);
+        return res.send({status: true, message: `Site Disabled`})
+    } else if (!query) {
+        config = JSON.parse(fs.readFileSync('./config.json'))
+        console.log(`IP: ${req.ip} - Site Enabled`);
+        return res.send({status: true, message: `Site Enabled`})
+    } else {
+        return res.send({status: false, message: `uhhhhhhhhhh????`})
+    }
+})
+
+app.use(checkdisabled)
+
+app.get('/password', (req, res) => {
+    if(req.cookies['authkey'] != passwordmd5) {
+        if (req.cookies['authkey'] != undefined) {
+            console.log(`IP: ${req.ip} - Bad cookie - ${req.cookies['authkey']}`);
+        }
+        res.clearCookie('authkey')
+        res.sendFile(path.join(__dirname, './password/index.html'))
+    } else {
+        res.redirect('/')
+    }
+})
+app.post('/password/submit', limiter)
+app.post('/password/submit', passwordapi)
+
 app.use(cookiecheck) // DO NOT MOVE THIS, PLACE EVERYTHING YOU WANT PLACED BEHIND A PASSWORD WALL, AFTER THIS LINE
 
 function cabfa() {

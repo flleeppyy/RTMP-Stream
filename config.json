@@ -2,5 +2,6 @@
   "port": 8111,
   "mainpassword": "test",
   "adminpassword": "test",
-  "currentlywatching": "test"
+  "currentlywatching": "test",
+  "sitedisabled": true
 }

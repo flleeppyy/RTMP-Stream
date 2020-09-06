@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,7 +20,7 @@
             height: 500px;
             width: 400px;
             overflow: hidden;
-            background-color:#333;
+            background-color: #333;
             color: white;
             margin: 20px auto;
             border-radius: 8px;
@@ -43,7 +44,7 @@
         #errorid {
             color: lightcoral;
         }
-
+        
         input {
             border-radius: 2px;
             border-block: none;
@@ -53,8 +54,9 @@
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
-    
+
 </head>
+
 <body>
     <section class="flextape">
         <h2 class="headertext">Admin Panel</h2>
@@ -75,6 +77,14 @@
                 <p id='ccw-response'></p>
             </form>
         </div>
+        <div class="flexglue">
+            <h2 class="optiontitle flexglue">Enable/Disable Site</h2>
+            <form class="flexglue" action="javascript:;" onsubmit="changecurrentlywatching(this)">
+                <input type="button" value="Enable" onclick="sitestatus('enabled')">
+                <input type="button" value="Disable" onclick="sitestatus('disabled')">
+                <p id='eds-response'></p>
+            </form>
+        </div>
     </section>
     <script>
         let green = "lightgreen";
@@ -87,7 +97,7 @@
             const xhr = new XMLHttpRequest();
             xhr.onload = () => {
                 const response = JSON.parse(xhr.response);
-                switch(response.status) {
+                switch (response.status) {
                     case true:
                         ResElement.innerHTML = response.message;
                         ResElement.style.color = green;
@@ -104,7 +114,7 @@
             xhr.open('POST', './api/admin/changesitepassword?password=' + form.password.value);
             xhr.send();
         }
-        
+
         function changecurrentlywatching(form, str) {
             let ResElement = document.getElementById('ccw-response');
             let data;
@@ -112,7 +122,7 @@
             const xhr = new XMLHttpRequest();
             xhr.onload = () => {
                 const response = JSON.parse(xhr.response);
-                switch(response.status) {
+                switch (response.status) {
                     case true:
                         ResElement.innerHTML = response.message;
                         ResElement.style.color = green;
@@ -126,7 +136,7 @@
                         ResElement.style.color = yellow;
                 }
             };
-            if(!form) {
+            if (!form) {
                 data = "Nothing";
             } else {
                 data = form.title.value;
@@ -134,6 +144,51 @@
             xhr.open('POST', './api/admin/changecurrentlywatching?currentlywatching=' + data);
             xhr.send();
         }
+
+        function sitestatus(str) {
+            let ResElement = document.getElementById('eds-response');
+            let data;
+            ResElement.innerHTML = '';
+            const xhr = new XMLHttpRequest();
+            xhr.onload = () => {
+                const response = JSON.parse(xhr.response);
+                switch (response.disabled) {
+                    case false:
+                        ResElement.innerHTML = response.message;
+                        ResElement.style.color = green;
+                        break
+                    case true:
+                        ResElement.innerHTML = response.message
+                        ResElement.style.color = red;
+                        break
+                    default:
+                        ResElement.innerHTML = response.message
+                        ResElement.style.color = yellow;
+                }
+            };
+
+            if (str == "enabled") {
+                data = false
+            } else if (str == "disabled") {
+                data = true
+            } else {
+                alert('Button went brrrrrrr: error');
+            }
+            xhr.open('POST', './api/admin/sitedisabled?sitedisabled=' + data);
+            xhr.send();
+        }
+
+        {
+            const xhr = new XMLHttpRequest()
+            xhr.onload = () => {
+                console.log(xhr.response)
+                const response = JSON.parse(xhr.response)
+                document.getElementById('eds-response').innerHTML = response.message;
+            };
+            xhr.open('GET', '/api/admin/sitedisabled');
+            xhr.send();
+        }
     </script>
 </body>
+
 </html>
