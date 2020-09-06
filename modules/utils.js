@@ -7,16 +7,5 @@ module.exports = {
             result += characters.charAt(Math.floor(Math.random() * charactersLength));
         }
         return result;
-    },
-    parseCookies: function (request) {
-        var list = {},
-            rc = request;
-    
-        rc && rc.split(';').forEach(function( cookie ) {
-            var parts = cookie.split('=');
-            list[parts.shift().trim()] = decodeURI(parts.join('='));
-        });
-    
-        return list;
     }
 }

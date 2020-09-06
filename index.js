@@ -1,3 +1,7 @@
+
+
+//Look into this for authentication https://firebase.google.com/
+NODE_NO_WARNINGS=1;
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -8,15 +12,18 @@ const app = express();
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit')
 const bodyParser = require('body-parser')
-
+const lineReader = require('line-reader');
 
 const passwordapi = require('./middleware/passwordapi')
+const adminpasswordapi = require('./middleware/adminpasswordapi')
 const cookiecheck = require('./middleware/cookiecheck')
-const utils = require('./modules/utils');
-const config = require('./config');
+const admincookiecheck = require('./middleware/admincookiecheck')
+// const utils = require('./modules/utils');
+const config = JSON.parse(fs.readFileSync('./config.json'))
 const cookieParser = require('cookie-parser');
 
-const passwordmd5 = md5(config.password)
+const passwordmd5 = md5(config['mainpassword'])
+const adminpasswordmd5 = md5(config.adminpassword)
 let currentlywatching;
 app.use(cookieParser())
 app.use(bodyParser())
@@ -25,7 +32,14 @@ app.use(helmet({
     contentSecurityPolicy: false,
 }));
 
-const limiter = rateLimit(config.ratelimit);
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10,
+    message: {status: false, message: "Too many requests, please try again after 15 minutes"},
+    onLimitReached: function (req, res, options) {
+        console.log(`IP: ${req.ip} - Too many requests - Rate Limited`);
+    }
+});
 
 app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'public/favicon.ico')))
 app.get('/password', (req, res) => {
@@ -39,21 +53,71 @@ app.get('/password', (req, res) => {
         res.redirect('/')
     }
 })
+app.get(['/admin', '/api/admin'], (req, res) => {
+    if(req.cookies['adminauthkey'] != adminpasswordmd5) {
+        if (req.cookies['adminauthkey'] != undefined) {
+            console.log(`IP: ${req.ip} - ADMINPANEL - Bad cookie - ${req.cookies['authkey']}`);
+        }
+        res.clearCookie('adminauthkey')
+        res.sendFile(path.join(__dirname, './adminpanel/password.html'))
+    } else {
+        res.sendFile(path.join(__dirname, './adminpanel/panel.html'));
+    }
+})
 app.post('/password/submit', limiter)
 app.post('/password/submit', passwordapi)
-
+app.post('/password/submit/admin', limiter)
+app.post('/password/submit/admin', adminpasswordapi)
+app.use('/api/admin', admincookiecheck)
+app.post('/api/admin/changesitepassword', (req, res) => {
+    if(!req.query['password']) {
+        return res.status(400).send({status: false, message: "No password provided"})
+    } else {
+        fs.readFile('config.json', (err, data) => {
+            data = JSON.parse(data);
+            data['mainpassword'] = req.query['password'];
+            newdata = JSON.stringify(data, null, 2)
+            fs.writeFile('config.json', newdata, (err) => {
+                if (err) throw err;
+            })
+            console.log(`IP: ${req.ip} - Changed Password - ${data['mainpassword']}`);
+        })
+    }  
+    return res.send({status: true, message: `Success`})
+})
+app.post('/api/admin/changecurrentlywatching', (req, res) => {
+    if(!req.query['currentlywatching']) {
+        return res.status(400).send({status: false, message: "No title provided"})
+    } else {
+        fs.readFile('config.json', (err, data) => {
+            data = JSON.parse(data);
+            data['currentlywatching'] = req.query['currentlywatching'];
+            newdata = JSON.stringify(data, null, 2)
+            fs.writeFile('config.json', newdata, (err) => {
+                if (err) throw err;
+            })
+            console.log(`IP: ${req.ip} - Changed Currently Watching - ${data['currentlywatching']}`);
+        })
+    }
+    
+    return res.send({status: true, message: `Success!\nSet to "${req.query['currentlywatching']}"`})
+})
 app.use(cookiecheck) // DO NOT MOVE THIS, PLACE EVERYTHING YOU WANT PLACED BEHIND A PASSWORD WALL, AFTER THIS LINE
 
-setInterval(() => {
-    currentlywatching = JSON.parse(fs.readFileSync(path.join(__dirname, "./data.json")))
-}, 30000)
+function cabfa() {
+    fs.readFile("./config.json", (err, data) => {
+        if (err) throw err;
+        currentlywatching = JSON.parse(data)['currentlywatching'];
+    })
+}
 
-app.get('/api/currentlywatching', (req, res) => {
-    res.send(currentlywatching);
-})
+cabfa()
+setInterval(cabfa, 30000)
+app.get('/api/currentlywatching', (req, res) => res.send({currentlywatching: currentlywatching}))
+
 app.use('/stream', express.static(__dirname + '/public/stream')) // Static route; DO NOT ADD TRAILING SLASH IN EXPRESS.STATIC
 app.use('/', express.static(__dirname + '/public'))
-app.get('/stream/stream.m3u8', (req, res) => res.sendFile(path.join(__dirname, './public/stream/.m3u8'), { dotfiles: 'allow' })) // Just for extra measure
+app.get('/stream/stream.m3u8', (req, res) => res.sendFile(path.join(__dirname, './public/stream/.m3u8'), { dotfiles: 'allow', hidden: true  })) // Just for extra measure
 app.get('/', (req, res) => { // The index page
     try {
         console.info(`IP: ${req.ip} Requested ${req.url}`) // just do some logging

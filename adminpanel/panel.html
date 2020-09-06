@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #1f1e33;
+            font-family: 'Montserrat ExtraLight', sans-serif;
+        }
+        
+        .flextape {
+            display: flex;
+            text-align: center;
+            flex-direction: column;
+            justify-content: start;
+            height: 500px;
+            width: 400px;
+            overflow: hidden;
+            background-color:#333;
+            color: white;
+            margin: 20px auto;
+            border-radius: 8px;
+        }
+        
+        .flexglue {
+            position: relative;
+            margin: 10px auto;
+        }
+        
+        .headertext {
+            font-size: 30px;
+            color: lightcoral;
+        }
+        
+        .optiontitle {
+            font-size: 18px;
+            color: white;
+        }
+        
+        #errorid {
+            color: lightcoral;
+        }
+
+        input {
+            border-radius: 2px;
+            border-block: none;
+            border-inline: none;
+            padding: 2px 5px;
+            margin: 4px;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+    
+</head>
+<body>
+    <section class="flextape">
+        <h2 class="headertext">Admin Panel</h2>
+        <div class="flexglue">
+            <h2 class="optiontitle flexglue">Change Site Password</h2>
+            <form class="flexglue" action="javascript:;" onsubmit="changesitepassword(this)">
+                <input type="text" placeholder="Password" name="password">
+                <input type="submit" value="Submit">
+                <p id='csp-response'></p>
+            </form>
+        </div>
+        <div class="flexglue">
+            <h2 class="optiontitle flexglue">Change Currently Watching</h2>
+            <form class="flexglue" action="javascript:;" onsubmit="changecurrentlywatching(this)">
+                <input type="text" placeholder="Title" name="title">
+                <input type="submit" value="Submit">
+                <input type="button" value="Reset to None" onclick="changecurrentlywatching(null, 'Nothing')">
+                <p id='ccw-response'></p>
+            </form>
+        </div>
+    </section>
+    <script>
+        let green = "lightgreen";
+        let red = "lightcoral";
+        let yellow = "#ffff7c";
+
+        function changesitepassword(form) {
+            let ResElement = document.getElementById('csp-response');
+            ResElement.innerHTML = '';
+            const xhr = new XMLHttpRequest();
+            xhr.onload = () => {
+                const response = JSON.parse(xhr.response);
+                switch(response.status) {
+                    case true:
+                        ResElement.innerHTML = response.message;
+                        ResElement.style.color = green;
+                        break
+                    case false:
+                        ResElement.innerHTML = response.message
+                        ResElement.style.color = red;
+                        break
+                    default:
+                        ResElement.innerHTML = response.message
+                        ResElement.style.color = yellow;
+                }
+            };
+            xhr.open('POST', './api/admin/changesitepassword?password=' + form.password.value);
+            xhr.send();
+        }
+        
+        function changecurrentlywatching(form, str) {
+            let ResElement = document.getElementById('ccw-response');
+            let data;
+            ResElement.innerHTML = '';
+            const xhr = new XMLHttpRequest();
+            xhr.onload = () => {
+                const response = JSON.parse(xhr.response);
+                switch(response.status) {
+                    case true:
+                        ResElement.innerHTML = response.message;
+                        ResElement.style.color = green;
+                        break
+                    case false:
+                        ResElement.innerHTML = response.message
+                        ResElement.style.color = red;
+                        break
+                    default:
+                        ResElement.innerHTML = response.message
+                        ResElement.style.color = yellow;
+                }
+            };
+            if(!form) {
+                data = "Nothing";
+            } else {
+                data = form.title.value;
+            }
+            xhr.open('POST', './api/admin/changecurrentlywatching?currentlywatching=' + data);
+            xhr.send();
+        }
+    </script>
+</body>
+</html>

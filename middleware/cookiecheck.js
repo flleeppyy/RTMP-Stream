@@ -1,7 +1,8 @@
+const fs = require("fs");
 const cookieParser = require('cookie-parser');
 const md5 = require('md5')
-const config = require('../config');
-const passwordmd5 = md5(config.password)
+const config = JSON.parse(fs.readFileSync('./config.json'))
+const passwordmd5 = md5(config['mainpassword'])
 
 let init = function (req, res, next) {
     if(!req.cookies['authkey']) {
