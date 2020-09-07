@@ -1,7 +1,8 @@
 {
   "port": 8111,
-  "mainpassword": "test",
+  "mainpassword": "fumo",
   "adminpassword": "test",
-  "currentlywatching": "test",
-  "sitedisabled": true
+  "currentlywatching": "None",
+	"sitedisabled": false,
+  "testkey1": "teetetasfa"
 }

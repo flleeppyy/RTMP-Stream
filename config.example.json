@@ -2,5 +2,6 @@
 	"port": 8111,
 	"mainpassword": "fumo",
 	"adminpassword": "test",
-    "currentlywatching": "None"
+	"currentlywatching": "None",
+	"sitedisabled": false
 }

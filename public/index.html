@@ -39,7 +39,7 @@
 
 <body>
     <header>
-        <button onclick="clearandredirect()">Clear Cookies (Debug)</button>
+        <button onclick="clearandredirect()">Clear Authkey (Debug)</button>
         <script>
             function clearandredirect() {
                 document.cookie = 'authkey=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
@@ -64,6 +64,7 @@
         <h1 class="item">Join the Discord</h1>
         <iframe class="discordembed" src="https://discordapp.com/widget?id=710232085926772876&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
     </section>
+    <img id="kyouko" src="./resources/kyouko.png" width="128" height="128" onclick="window.location = '/admin'">
     <script src="https://unpkg.com/video.js/dist/video.js"></script>
     <script src="https://unpkg.com/browse/@videojs/http-streaming@1.13.3/dist/videojs-http-streaming.js"></script>
     <script>
@@ -81,6 +82,8 @@
         }
         getcurrentlywatching();
         setInterval(getcurrentlywatching,30000)
+
+
     </script>
     
 </body>

@@ -42,6 +42,7 @@ const limiter = rateLimit({
     }
 });
 
+app.use('/resources', express.static(__dirname + '/public/resources'))
 app.get('/disabled', (req, res) => {
     console.log('uhhh')
     if(JSON.parse(fs.readFileSync('./config.json'))['sitedisabled']) {
@@ -75,6 +76,37 @@ app.use('/api/admin', admincookiecheck)
     function editconfig(key, value)
 
 */
+
+/**
+ * @param {string} key The key in the config you want to change
+ * @param {string} value the value of the key you want to change
+ * @param {string} logmessage The message to log in console. ("Changed " + logmessage)
+ * @param {boolean} logvalue Whether to log the value of what was changed, or not
+ * @param {boolean} req Express Request - OPTIONAL
+ */
+function editconfig(key, value, logmessage, logvalue, req, res) {
+    if (!key || !value || !logmessage || !logvalue) {
+        throw "Did not specify one of the required values"
+    }
+    fs.readFile('config.json', (err, data) => {
+        data = JSON.parse(data);
+        data[key] = value;
+        newdata = JSON.stringify(data, null, 2)
+        fs.writeFile('config.json', newdata, (err) => {
+            if (err) throw err;
+        })
+        if (err) throw err;
+        console.log(`IP: ${(req ? req.ip : "?")} - Changed ${logmessage}${(logvalue ? ` - ${value}` : "")}`);
+
+    })
+}
+
+
+
+// app.get('/api/test12', (req, res) => {
+//     req.send(editconfig('testkey1', 'teetetasfa', "testkey1", true, req))
+// })
+
 app.post('/api/admin/changesitepassword', (req, res) => {
     if(!req.query['password']) {
         return res.status(400).send({status: false, message: "No password provided"})
@@ -110,7 +142,6 @@ app.post('/api/admin/changecurrentlywatching', (req, res) => {
 })
 
 app.get('/api/admin/sitedisabled', (req, res) => {
-    
     // console.log(config['sitedisabled'])
     if(JSON.parse(fs.readFileSync('./config.json'))['sitedisabled']) {
         // console.log("should be disabled")
@@ -137,18 +168,16 @@ app.post('/api/admin/sitedisabled', (req, res) => {
             fs.writeFile('config.json', newdata, (err) => {
                 if (err) throw err;
             })
-           
-        })
-        
+        })      
     }
     if(query) {
         config = JSON.parse(fs.readFileSync('./config.json'))
         console.log(`IP: ${req.ip} - Site Disabled`);
-        return res.send({status: true, message: `Site Disabled`})
+        return res.send({status: true, message: `Site Disabled`, disabled: true})
     } else if (!query) {
         config = JSON.parse(fs.readFileSync('./config.json'))
         console.log(`IP: ${req.ip} - Site Enabled`);
-        return res.send({status: true, message: `Site Enabled`})
+        return res.send({status: true, message: `Site Enabled`, disabled: false})
     } else {
         return res.send({status: false, message: `uhhhhhhhhhh????`})
     }
