@@ -1,9 +1,6 @@
-
-
 //Look into this for authentication https://firebase.google.com/
-NODE_NO_WARNINGS=1;
+NODE_NO_WARNINGS = 1;
 const fs = require("fs");
-const os = require("os");
 const path = require("path");
 const md5 = require('md5')
 
@@ -12,22 +9,29 @@ const app = express();
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit')
 const bodyParser = require('body-parser')
-const lineReader = require('line-reader');
+
+// Admin api
+const admincookiecheck = require('./apis/admin/admincookiecheck')
+const adminpasswordapi = require('./apis/admin/adminpasswordapi')
+const changesitepassword = require('./apis/admin/changesitepassword')
+const adminsitedisabled = require('./apis/admin/sitedisabled')
 
 const passwordapi = require('./middleware/passwordapi')
-const adminpasswordapi = require('./middleware/adminpasswordapi')
 const cookiecheck = require('./middleware/cookiecheck')
-const admincookiecheck = require('./middleware/admincookiecheck')
+
 const checkdisabled = require('./middleware/checkdisabled')
-// const utils = require('./modules/utils');
+    // const utils = require('./modules/utils');
 let config = JSON.parse(fs.readFileSync('./config.json'))
 const cookieParser = require('cookie-parser');
+const sitedisabled = require("./middleware/disabled");
+const changecurrentlywatching = require("./apis/admin/changecurrentlywatching");
 
 const passwordmd5 = md5(config['mainpassword'])
-const adminpasswordmd5 = md5(config.adminpassword)
+
 let currentlywatching;
 app.use(cookieParser())
-app.use(bodyParser())
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 app.set('trust proxy', 1);
 app.use(helmet({
     contentSecurityPolicy: false,
@@ -36,54 +40,37 @@ app.use(helmet({
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 10,
-    message: {status: false, message: "Too many requests, please try again after 15 minutes"},
-    onLimitReached: function (req, res, options) {
+    message: { status: false, message: "Too many requests, please try again after 15 minutes" },
+    onLimitReached: function(req, res, options) {
         console.log(`IP: ${req.ip} - Too many requests - Rate Limited`);
     }
 });
 
 app.use('/resources', express.static(__dirname + '/public/resources'))
-app.get('/disabled', (req, res) => {
-    // console.log('uhhh')
-    if(JSON.parse(fs.readFileSync('./config.json'))['sitedisabled']) {
-        // console.log(config['sitedisabled'])
-        res.status(503).sendFile(path.join(__dirname, 'password/disabled.html'));
-    } else {
-        res.redirect('/')
-    }
-})
-app.post('/disabled', (req, res) => {
-    if(JSON.parse(fs.readFileSync('./config.json'))['sitedisabled']) {
-        // console.log(config['sitedisabled'])
-        return res.status(200).send({status: true, message: "Site disabled", sitedisabled: true})
-    } else {
-        return res.status(200).send({status: true, message: "Site enabled", sitedisabled: false})
-    }
-})
+app.get('/disabled', sitedisabled.get)
+app.post('/disabled', sitedisabled.post)
+
 app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'public/favicon.ico')))
 
 app.get(['/admin', '/api/admin'], (req, res) => {
-    if(req.cookies['adminauthkey'] != adminpasswordmd5) {
-        if (req.cookies['adminauthkey'] != undefined) {
-            console.log(`IP: ${req.ip} - ADMINPANEL - Bad cookie - ${req.cookies['authkey']}`);
+    fs.readFile('./config.json', (err, data) => {
+        const adminpasswordmd5 = md5(JSON.parse(data)['adminpassword'])
+        if (req.cookies['adminauthkey'] != adminpasswordmd5) {
+            if (req.cookies['adminauthkey'] != undefined) {
+                console.log(`IP: ${req.ip} - ADMINPANEL - Bad cookie - ${req.cookies['authkey']}`);
+            }
+            res.clearCookie('adminauthkey')
+            res.sendFile(path.join(__dirname, './adminpanel/password.html'))
+        } else {
+            res.sendFile(path.join(__dirname, './adminpanel/panel.html'));
         }
-        res.clearCookie('adminauthkey')
-        res.sendFile(path.join(__dirname, './adminpanel/password.html'))
-    } else {
-        res.sendFile(path.join(__dirname, './adminpanel/panel.html'));
-    }
+    })
 })
 
 
 app.post('/password/submit/admin', limiter)
 app.post('/password/submit/admin', adminpasswordapi)
 app.use('/api/admin', admincookiecheck)
-/*
-    TO DO: create a function that edits the config instead of having to copy the function
-    multiple times
-    function editconfig(key, value)
-
-*/
 
 /**
  * @param {string} key The key in the config you want to change
@@ -96,100 +83,28 @@ function editconfig(key, value, logmessage, logvalue, req, res) {
     if (!key || !value || !logmessage || !logvalue) {
         throw "Did not specify one of the required values"
     }
+
     fs.readFile('config.json', (err, data) => {
-        data = JSON.parse(data);
-        data[key] = value;
-        newdata = JSON.stringify(data, null, 2)
-        fs.writeFile('config.json', newdata, (err) => {
-            if (err) throw err;
-        })
-        if (err) throw err;
-        console.log(`IP: ${(req ? req.ip : "?")} - Changed ${logmessage}${(logvalue ? ` - ${value}` : "")}`);
+                data = JSON.parse(data);
+                data[key] = value;
+                newdata = JSON.stringify(data, null, 2)
+                fs.writeFile('config.json', newdata, (err) => {
+                    if (err) throw err;
+                })
+                if (err) throw err;
+                console.log(`IP: ${(req ? req.ip : "?")} - Changed ${logmessage}${(logvalue ? ` - ${value}` : "")}`);
 
     })
 }
-
-
 
 // app.get('/api/test12', (req, res) => {
 //     req.send(editconfig('testkey1', 'teetetasfa', "testkey1", true, req))
 // })
 
-app.post('/api/admin/changesitepassword', (req, res) => {
-    if(!req.query['password']) {
-        return res.status(400).send({status: false, message: "No password provided"})
-    } else {
-        fs.readFile('config.json', (err, data) => {
-            data = JSON.parse(data);
-            data['mainpassword'] = req.query['password'];
-            newdata = JSON.stringify(data, null, 2)
-            fs.writeFile('config.json', newdata, (err) => {
-                if (err) throw err;
-            })
-            console.log(`IP: ${req.ip} - Changed Password - ${data['mainpassword']}`);
-        })
-    }  
-    return res.send({status: true, message: `Success`})
-})
-app.post('/api/admin/changecurrentlywatching', (req, res) => {
-    if(!req.query['currentlywatching']) {
-        return res.status(400).send({status: false, message: "No title provided"})
-    } else {
-        fs.readFile('config.json', (err, data) => {
-            data = JSON.parse(data);
-            data['currentlywatching'] = req.query['currentlywatching'];
-            newdata = JSON.stringify(data, null, 2)
-            fs.writeFile('config.json', newdata, (err) => {
-                if (err) throw err;
-            })
-            console.log(`IP: ${req.ip} - Changed Currently Watching - ${data['currentlywatching']}`);
-        })
-    }
-    
-    return res.send({status: true, message: `Success!\nSet to "${req.query['currentlywatching']}"`})
-})
-
-app.get('/api/admin/sitedisabled', (req, res) => {
-    // console.log(config['sitedisabled'])
-    if(JSON.parse(fs.readFileSync('./config.json'))['sitedisabled']) {
-        // console.log("should be disabled")
-        res.send({status: true, message: `Site Disabled`, disabled: true})
-    } else {
-        // console.log("should be enabled")
-        res.send({status: true, message: `Site Enabled`, disabled: false})
-    }
-})
-app.post('/api/admin/sitedisabled', (req, res) => {
-    let query;
-    if(!req.query['sitedisabled']) {
-        return res.status(400).send({status: false, message: "No bool provided", missing: "sitedisabled"})
-    } else {
-        if(req.query['sitedisabled'] == "false") {
-            query = false;
-        } else if (req.query['sitedisabled'] == "true") {
-            query = true;
-        }
-        fs.readFile('config.json', (err, data) => {
-            data = JSON.parse(data);
-            data['sitedisabled'] = query;
-            newdata = JSON.stringify(data, null, 2)
-            fs.writeFile('config.json', newdata, (err) => {
-                if (err) throw err;
-            })
-        })      
-    }
-    if(query) {
-        config = JSON.parse(fs.readFileSync('./config.json'))
-        console.log(`IP: ${req.ip} - Site Disabled`);
-        return res.send({status: true, message: `Site Disabled`, disabled: true})
-    } else if (!query) {
-        config = JSON.parse(fs.readFileSync('./config.json'))
-        console.log(`IP: ${req.ip} - Site Enabled`);
-        return res.send({status: true, message: `Site Enabled`, disabled: false})
-    } else {
-        return res.send({status: false, message: `uhhhhhhhhhh????`})
-    }
-})
+app.post('/api/admin/changesitepassword', changesitepassword)
+app.post('/api/admin/changecurrentlywatching', changecurrentlywatching)
+app.get('/api/admin/sitedisabled', adminsitedisabled.get)
+app.post('/api/admin/sitedisabled', adminsitedisabled.post)
 
 app.use(checkdisabled)
 
