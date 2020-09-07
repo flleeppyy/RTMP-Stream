@@ -1,11 +1,9 @@
-const path = require("path");
 const fs = require("fs");
-const cookieParser = require('cookie-parser');
 const md5 = require('md5');
-const config = JSON.parse(fs.readFileSync('./config.json'));
-const passwordmd5 = md5(config['mainpassword']);
 
-let init = function(req, res, next) {
+module.exports = function(req, res, next) {
+    const config = JSON.parse(fs.readFileSync('./config.json'));
+    const passwordmd5 = md5(config['mainpassword']);
     if (!JSON.parse(fs.readFileSync('./config.json'))['sitedisabled']) {
         if (!req.cookies['authkey']) {
             return res.redirect('/password')
@@ -22,5 +20,3 @@ let init = function(req, res, next) {
     }
     next();
 }
-
-module.exports = init;

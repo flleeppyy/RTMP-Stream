@@ -1,10 +1,9 @@
 const fs = require("fs");
-const cookieParser = require('cookie-parser');
 const md5 = require('md5')
-const config = JSON.parse(fs.readFileSync('./config.json'))
-const passwordmd5 = md5(config['adminpassword'])
 
-let init = function (req, res, next) {
+module.exports = function (req, res, next) {
+    const config = JSON.parse(fs.readFileSync('./config.json'))
+    const passwordmd5 = md5(config['adminpassword'])
     if(!req.cookies['adminauthkey']) {
         return res.redirect('/admin')
     } else if(req.cookies['adminauthkey'] != passwordmd5) {
@@ -16,5 +15,3 @@ let init = function (req, res, next) {
     }
     next();
 }
-
-module.exports = init;

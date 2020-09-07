@@ -1,10 +1,11 @@
 const path = require("path");
 const fs = require("fs");
 const md5 = require('md5');
-const config = JSON.parse(fs.readFileSync('./config.json'));
-const passwordmd5 = md5(config['mainpassword']);
-const passwordplain = config['mainpassword'];
+
 module.exports = function(req, res, next) {
+    const config = JSON.parse(fs.readFileSync('./config.json'));
+    const passwordmd5 = md5(config['mainpassword']);
+    const passwordplain = config['mainpassword'];
     if (!JSON.parse(fs.readFileSync('./config.json'))['sitedisabled']) {
         let query = req.query['authkey'];
         if (query == "admin") {
