@@ -44,9 +44,9 @@ const limiter = rateLimit({
 
 app.use('/resources', express.static(__dirname + '/public/resources'))
 app.get('/disabled', (req, res) => {
-    console.log('uhhh')
+    // console.log('uhhh')
     if(JSON.parse(fs.readFileSync('./config.json'))['sitedisabled']) {
-        console.log(config['sitedisabled'])
+        // console.log(config['sitedisabled'])
         res.status(503).sendFile(path.join(__dirname, 'password/disabled.html'));
     } else {
         res.redirect('/')

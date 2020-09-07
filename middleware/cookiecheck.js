@@ -17,7 +17,7 @@ let init = function(req, res, next) {
             return res.redirect('/password');
         }
     } else {
-        console.log('tryed to access disabled')
+        // console.log('tryed to access disabled')
         return res.status(503).redirect('/')
     }
     next();
