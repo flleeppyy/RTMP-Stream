@@ -3,6 +3,6 @@
   "mainpassword": "fumo",
   "adminpassword": "test",
   "currentlywatching": "None",
-  "sitedisabled": true,
+  "sitedisabled": false,
   "testkey1": "teetetasfa"
 }
