@@ -1,10 +1,11 @@
 const fs = require('fs');
+const path = require('path')
 
 module.exports = {
     get: function(req, res, next) {
         if (JSON.parse(fs.readFileSync('./config.json'))['sitedisabled']) {
             // console.log(config['sitedisabled'])
-            res.status(503).sendFile(path.join(__dirname, 'password/disabled.html'));
+            res.status(503).sendFile(path.join(__dirname, '../password/disabled.html'));
         } else {
             res.redirect('/')
         }

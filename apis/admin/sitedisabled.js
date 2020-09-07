@@ -13,6 +13,7 @@ module.exports = {
                 query = true;
             }
             fs.readFile(configjson, (err, data) => {
+                if(err) throw err
                 data = JSON.parse(data);
                 data['sitedisabled'] = query;
                 newdata = JSON.stringify(data, null, 2)
@@ -21,7 +22,7 @@ module.exports = {
                 })
             })
         }
-        
+
         if (query) {
             console.log(`IP: ${req.ip} - Change Site State -  Disabled`);
             return res.send({ status: true, message: `Site Disabled`, disabled: true })

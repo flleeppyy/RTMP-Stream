@@ -26,8 +26,6 @@ const cookieParser = require('cookie-parser');
 const sitedisabled = require("./middleware/disabled");
 const changecurrentlywatching = require("./apis/admin/changecurrentlywatching");
 
-const passwordmd5 = md5(config['mainpassword'])
-
 let currentlywatching;
 app.use(cookieParser())
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -72,31 +70,6 @@ app.post('/password/submit/admin', limiter)
 app.post('/password/submit/admin', adminpasswordapi)
 app.use('/api/admin', admincookiecheck)
 
-/**
- * @param {string} key The key in the config you want to change
- * @param {string} value the value of the key you want to change
- * @param {string} logmessage The message to log in console. ("Changed " + logmessage)
- * @param {boolean} logvalue Whether to log the value of what was changed, or not
- * @param {boolean} req Express Request - OPTIONAL
- */
-function editconfig(key, value, logmessage, logvalue, req, res) {
-    if (!key || !value || !logmessage || !logvalue) {
-        throw "Did not specify one of the required values"
-    }
-
-    fs.readFile('config.json', (err, data) => {
-                data = JSON.parse(data);
-                data[key] = value;
-                newdata = JSON.stringify(data, null, 2)
-                fs.writeFile('config.json', newdata, (err) => {
-                    if (err) throw err;
-                })
-                if (err) throw err;
-                console.log(`IP: ${(req ? req.ip : "?")} - Changed ${logmessage}${(logvalue ? ` - ${value}` : "")}`);
-
-    })
-}
-
 // app.get('/api/test12', (req, res) => {
 //     req.send(editconfig('testkey1', 'teetetasfa', "testkey1", true, req))
 // })
@@ -108,19 +81,24 @@ app.post('/api/admin/sitedisabled', adminsitedisabled.post)
 
 app.use(checkdisabled)
 
-app.get('/password', (req, res) => {
-    if(req.cookies['authkey'] != passwordmd5) {
-        if (req.cookies['authkey'] != undefined) {
-            console.log(`IP: ${req.ip} - Bad cookie - ${req.cookies['authkey']}`);
-        }
-        res.clearCookie('authkey')
-        res.sendFile(path.join(__dirname, './password/index.html'))
-    } else {
-        res.redirect('/')
-    }
-})
 app.post('/password/submit', limiter)
 app.post('/password/submit', passwordapi)
+app.get('/password', (req, res) => {
+    fs.readFile('config.json', (err, data) => {
+        passwordmd5 = md5(JSON.parse(data)['mainpassword'])
+        if(req.cookies['authkey'] != passwordmd5) {
+            if (req.cookies['authkey'] != undefined) {
+                console.log(`IP: ${req.ip} - Bad cookie - ${req.cookies['authkey']}`);
+            }
+            res.clearCookie('authkey')
+            res.sendFile(path.join(__dirname, './password/index.html'))
+        } else {
+            res.redirect('/')
+        }
+    })
+    
+})
+
 
 app.use(cookiecheck) // DO NOT MOVE THIS, PLACE EVERYTHING YOU WANT PLACED BEHIND A PASSWORD WALL, AFTER THIS LINE
 

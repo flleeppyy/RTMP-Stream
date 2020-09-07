@@ -1,8 +1,11 @@
+const fs = require('fs');
+
 module.exports = function(req, res, next) {
     if (!req.query['password']) {
         return res.status(400).send({ status: false, message: "No password provided" })
     } else {
         fs.readFile('config.json', (err, data) => {
+            if(err) throw err
             data = JSON.parse(data);
             data['mainpassword'] = req.query['password'];
             newdata = JSON.stringify(data, null, 2)

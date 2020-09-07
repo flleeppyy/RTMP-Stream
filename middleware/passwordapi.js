@@ -4,6 +4,7 @@ const md5 = require('md5');
 
 module.exports = function(req, res, next) {
     fs.readFile('./config.json', (err, data) => {
+        if(err) throw err
         const config = JSON.parse(data)
         const passwordmd5 = md5(config['mainpassword']);
         const passwordplain = config['mainpassword'];
@@ -28,7 +29,7 @@ module.exports = function(req, res, next) {
 
             return res.status(503).redirect('/').sendFile(path.join(__dirname, '../password/disabled.html'));
         }
-        next()
-        if (err) throw err
+        //next()
+
     })
 };
