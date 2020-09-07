@@ -52,6 +52,14 @@ app.get('/disabled', (req, res) => {
         res.redirect('/')
     }
 })
+app.post('/disabled', (req, res) => {
+    if(JSON.parse(fs.readFileSync('./config.json'))['sitedisabled']) {
+        // console.log(config['sitedisabled'])
+        return res.status(200).send({status: true, message: "Site disabled", sitedisabled: true})
+    } else {
+        return res.status(200).send({status: true, message: "Site enabled", sitedisabled: false})
+    }
+})
 app.get('/favicon.ico', (req, res) => res.sendFile(path.join(__dirname, 'public/favicon.ico')))
 
 app.get(['/admin', '/api/admin'], (req, res) => {

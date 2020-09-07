@@ -84,6 +84,20 @@
         getcurrentlywatching();
         setInterval(getcurrentlywatching,30000)
 
+        function checksitedisabled() {
+            const xhr = new XMLHttpRequest()
+            xhr.onload = () => {
+                const response = JSON.parse(xhr.response)
+                if (response['sitedisabled']) {
+                    window.location = './disabled'
+                }
+            };
+            xhr.open('POST', '/disabled');
+            xhr.send();
+        }
+        checksitedisabled();
+        setInterval(checksitedisabled,30000)
+
 
     </script>
     

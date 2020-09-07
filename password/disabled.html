@@ -67,5 +67,19 @@
         </div>
         <img id="kyouko" style="position:relative; align-self:center;" src="./resources/kyouko.png" width="128" height="128" onclick="window.location = '/admin'">
     </section>
+    <script>
+        function checksitedisabled() {
+            const xhr = new XMLHttpRequest()
+            xhr.onload = () => {
+                const response = JSON.parse(xhr.response)
+                if (!response['sitedisabled']) {
+                    window.location = '/'
+                }
+            };
+            xhr.open('POST', '/disabled');
+            xhr.send();
+        }
+        setInterval(checksitedisabled,1000)
+    </script>
 </body>
 </html>

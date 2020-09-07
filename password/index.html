@@ -76,6 +76,7 @@
         </div>
         
     </section>
+    
     <script>
         function ask(form) {
             document.getElementById('errorid').innerHTML = null
@@ -94,7 +95,19 @@
             xhr.open('POST', './password/submit?authkey=' + form.authkey.value);
             xhr.send();
         }
-        
+
+        function checksitedisabled() {
+            const xhr = new XMLHttpRequest()
+            xhr.onload = () => {
+                const response = JSON.parse(xhr.response)
+                if (response['sitedisabled']) {
+                    window.location = './disabled'
+                }
+            };
+            xhr.open('POST', '/disabled');
+            xhr.send();
+        }
+        setInterval(checksitedisabled,1000)
     </script>
 </body>
 </html>
